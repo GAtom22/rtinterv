@@ -11,6 +11,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+//LoginHandler handler for /login path - returns a token and its expiration date if login credentials are OK
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	switch r.Method {
@@ -30,7 +31,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// send data to client
+		// send token data to client
 		loginData := models.LoginResponseItem{
 			Token:   token,
 			Expires: expirationDate,
