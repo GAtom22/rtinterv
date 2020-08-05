@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"retargetly-exercise/structs"
+	"retargetly-exercise/helpers"
+	"retargetly-exercise/models"
 	"time"
-	"os"
+
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -14,21 +15,23 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	switch r.Method {
 	case http.MethodPost:
-		response := structs.APIResponse{}
+		response := models.APIResponse{}
 		//Check user credentials
-		ok, u := isValidUser(r)
+		ok, user, errMsg := isValidUser(r)
 		if !ok {
-			response.SendInfoMessage(w, "Error: Wrong credentials, user not found or wrong format, please use JSON", http.StatusUnauthorized)
+			response.SendInfoMessage(w, errMsg, http.StatusBadRequest)
 			return
 		}
 		//if OK generate and send auth token with expiration date
-		token, expirationDate, err := createToken(u, 10)
+		// Generate token with user data and expiration time (in minutes)
+		token, expirationDate, err := createToken(user, 10)
 		if err != nil {
 			response.SendInfoMessage(w, "Error while generating token", http.StatusInternalServerError)
 			return
 		}
 
-		loginData := structs.LoginResponseItem{
+		// send data to client
+		loginData := models.LoginResponseItem{
 			Token:   token,
 			Expires: expirationDate,
 		}
@@ -38,36 +41,37 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	default:
 		// Response for other http Methods that are not POST
-		response := structs.APIResponse{}
+		response := models.APIResponse{}
 		response.SendInfoMessage(w, "Not implemented, try with POST method", http.StatusNotImplemented)
 	}
 }
 
-func isValidUser(r *http.Request) (bool, structs.User) {
+// isValidUser returns true if the user is valid, the user data as User struct and an error message describing the problem
+func isValidUser(r *http.Request) (bool, models.User, string) {
 	// Decode the request body data to the User struct
-	var u structs.User
+	var u models.User
 	err := json.NewDecoder(r.Body).Decode(&u)
 	if err != nil {
 		log.Println("Error while decoding user credentials")
-		return false, structs.User{}
+		return false, models.User{}, "Wrong format, please use JSON"
 	}
 	// Check user's credentials
-	if u.UserId == "usuario" && u.Password == "contraseña" {
-		return true, u
+	if u.UserName == "usuario" && u.Password == "contraseña" {
+		return true, u, ""
 	}
-	return false, structs.User{}
+	return false, models.User{}, "Wrong credentials, user not found"
 }
 
-func createToken(u structs.User, expirationTimeInMinutes int) (string, string, error) {
+func createToken(u models.User, expirationTimeInMinutes int) (string, string, error) {
 	// Create token
 	token := jwt.New(jwt.SigningMethodHS256)
 	tokenExpirationTime := time.Now().Add(time.Minute * time.Duration(expirationTimeInMinutes))
 	// Set JWT token claims
 	claims := token.Claims.(jwt.MapClaims)
-	claims["user"] = u.UserId
+	claims["user"] = u.UserName
 	claims["exp"] = tokenExpirationTime
 	// Generate encoded token.
-	t, err := token.SignedString([]byte(os.Getenv("TOKEN_SECRET_KEY")))
+	t, err := token.SignedString([]byte(helpers.GetEnvVariable("TOKEN_SECRET_KEY")))
 	if err != nil {
 		return "", "", err
 	}
