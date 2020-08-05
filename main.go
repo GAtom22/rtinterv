@@ -3,9 +3,10 @@ package main
 import(
 	"net/http"
 	"fmt"
-	"log"
+	//"log"
 	"flag"
 	"retargetly-exercise/handlers"
+	"retargetly-exercise/dataprocessing"
 )
 
 func main(){
@@ -15,5 +16,8 @@ func main(){
 	http.HandleFunc("/files/", handlers.FilesHandler)
 
 	fmt.Printf("Starting server on port: %d\n", *port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
+	//log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
+
+	dataprocessing.StartProcess("./data/test1.tsv")
+	// dataprocessing.ProcessFile("./data/test1.tsv")
 }
