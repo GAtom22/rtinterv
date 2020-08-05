@@ -19,9 +19,9 @@ type LoginResponseItem struct {
 	Expires string `json:"expires"`
 }
 
-type FileListResponse struct {
-	Name string `json:"name"`
-	Size string `json:"size"`
+type FileListItem struct {
+	Name string      `json:"name"`
+	Size interface{} `json:"size"`
 }
 
 func (res *APIResponse) SendInfoMessage(w http.ResponseWriter, message string, status int) {

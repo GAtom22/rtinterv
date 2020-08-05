@@ -25,7 +25,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		//if OK generate and send auth token with expiration date
 		// Generate token with user data and expiration time (in minutes)
-		token, expirationDate, err := createToken(user, 10)
+		token, expirationDate, err := createToken(user, 15)
 		if err != nil {
 			response.SendInfoMessage(w, "Error while generating token", http.StatusInternalServerError)
 			return
@@ -63,10 +63,10 @@ func isValidUser(r *http.Request) (bool, models.User, string) {
 	return false, models.User{}, "Wrong credentials, user not found"
 }
 
-func createToken(u models.User, expirationTimeInMinutes int) (string, string, error) {
+func createToken(u models.User, expirationTimeInMinutes float32) (string, string, error) {
 	// Create token
 	token := jwt.New(jwt.SigningMethodHS256)
-	tokenExpirationTime := time.Now().Add(time.Minute * time.Duration(expirationTimeInMinutes))
+	tokenExpirationTime := time.Now().Add(time.Minute * time.Duration(expirationTimeInMinutes)).Unix()
 	// Set JWT token claims
 	claims := token.Claims.(jwt.MapClaims)
 	claims["user"] = u.UserName
@@ -80,8 +80,9 @@ func createToken(u models.User, expirationTimeInMinutes int) (string, string, er
 	return t, formatExpirationTime(tokenExpirationTime), nil
 }
 
-func formatExpirationTime(t time.Time) string {
-	expTimeString := t.Format(time.RFC3339)
+func formatExpirationTime(t int64) string {
+	expTime := time.Unix(t,0)
+	expTimeString := expTime.Format(time.RFC3339)
 	// Remove the last 6 characters (-03:00)
 	expTimeString = expTimeString[:len(expTimeString)-6]
 
