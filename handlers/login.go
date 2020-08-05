@@ -77,14 +77,5 @@ func createToken(u models.User, expirationTimeInMinutes float32) (string, string
 		return "", "", err
 	}
 
-	return t, formatExpirationTime(tokenExpirationTime), nil
-}
-
-func formatExpirationTime(t int64) string {
-	expTime := time.Unix(t,0)
-	expTimeString := expTime.Format(time.RFC3339)
-	// Remove the last 6 characters (-03:00)
-	expTimeString = expTimeString[:len(expTimeString)-6]
-
-	return expTimeString
+	return t, helpers.FormatDate(tokenExpirationTime), nil
 }

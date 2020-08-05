@@ -1,15 +1,17 @@
 package handlers
 
 import (
+	"retargetly-exercise/helpers"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
-	"encoding/json"
 	"retargetly-exercise/middleware"
 	"retargetly-exercise/models"
 )
 
+//FilesHandler handles the request for files/list and files/metrics
 func FilesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	response := models.APIResponse{}
@@ -19,7 +21,7 @@ func FilesHandler(w http.ResponseWriter, r *http.Request) {
 		err := middleware.TokenValid(r)
 		if err != nil {
 			errMsg := "Unauthorized: " + err.Error()
-			response.SendInfoMessage(w, errMsg, http.StatusUnauthorized)
+			response.SendInfoMessage(w, errMsg, http.StatusForbidden)
 			return
 		}
 		switch r.Method {
@@ -38,9 +40,9 @@ func FilesHandler(w http.ResponseWriter, r *http.Request) {
 func filesRoutesHandler(w http.ResponseWriter, r *http.Request, response *models.APIResponse) {
 	switch r.URL.Path {
 	case "/files/list":
-		filesList, err := getFilesList(w, r, "./data")
+		filesList, status, err := getFilesList(w, r, "./data")
 		if err != nil {
-			response.SendInfoMessage(w, err.Error(), http.StatusInternalServerError)
+			response.SendInfoMessage(w, err.Error(), status)
 			return
 		}
 		response.Content = filesList
@@ -50,12 +52,22 @@ func filesRoutesHandler(w http.ResponseWriter, r *http.Request, response *models
 	}
 }
 
-func getFilesList(w http.ResponseWriter, r *http.Request, directory string) ([]models.FileListItem, error) {
-	filesList, err := readFileNamesAndSize(directory, true)
-	if err != nil {
-		return []models.FileListItem{}, fmt.Errorf("Error while reading files at %s directory", directory)
+func getFilesList(w http.ResponseWriter, r *http.Request, directory string) ([]models.FileListItem, int, error) {
+	// Check if humanreadable is requested to get the file sizes in friendly units
+	keys, ok := r.URL.Query()["humanreadable"]
+	humanReadable := false
+	if ok && keys[0] == "true" {
+		humanReadable = true
 	}
-	return filesList, nil
+	// Go to the directory and get the files list
+	filesList, err := readFileNamesAndSize(directory, humanReadable)
+	if err != nil {
+		return []models.FileListItem{}, http.StatusInternalServerError, fmt.Errorf("Error while reading files at %s directory", directory)
+	}
+	if len(filesList) == 0 {
+		return []models.FileListItem{}, http.StatusOK, fmt.Errorf("No files found at %s directory", directory)
+	}
+	return filesList, http.StatusOK, nil
 }
 
 func getFilesMetrics(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +87,7 @@ func readFileNamesAndSize(root string, humanReadable bool) ([]models.FileListIte
 		}
 		// Format file size if requested
 		if humanReadable {
-			fileToAdd.Size = sizeFormating(info.Size())
+			fileToAdd.Size = helpers.FileSizeFormating(info.Size())
 		} else {
 			fileToAdd.Size = info.Size()
 		}
@@ -87,18 +99,4 @@ func readFileNamesAndSize(root string, humanReadable bool) ([]models.FileListIte
 		return []models.FileListItem{}, err
 	}
 	return files, nil
-}
-
-func sizeFormating(b int64) string {
-	const unit = 1024
-	if b < unit {
-		return fmt.Sprintf("%d B", b)
-	}
-	div, exp := int64(unit), 0
-	for n := b / unit; n >= unit; n /= unit {
-		div *= unit
-		exp++
-	}
-	return fmt.Sprintf("%.1f %cB",
-		float64(b)/float64(div), "kMGTPE"[exp])
 }
