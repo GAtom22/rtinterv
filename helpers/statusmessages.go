@@ -6,6 +6,7 @@ import (
 	"retargetly-exercise/models"
 	"time"
 )
+
 //SendStatusMessage for the file metrics section
 func SendStatusMessage(response *models.APIResponse, w http.ResponseWriter, status string) int64 {
 	reqTime := time.Now().Unix()
@@ -19,7 +20,7 @@ func SendStatusMessage(response *models.APIResponse, w http.ResponseWriter, stat
 }
 
 //SendFailedStatusMessage sends status: failed message for the file metrics section
-func SendFailedStatusMessage(response *models.APIResponse, w http.ResponseWriter, err error){
+func SendFailedStatusMessage(response *models.APIResponse, w http.ResponseWriter, err error) {
 	errMessage := models.FileMetricsFailedMessage{
 		Status:  "failed",
 		Message: err.Error(),

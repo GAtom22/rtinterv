@@ -36,7 +36,7 @@ func VerifyToken(r *http.Request) (*jwt.Token, error) {
 	return token, nil
 }
 
-//TokenValid Check if the token is (still) valid 
+//TokenValid Check if the token is (still) valid
 func TokenValid(r *http.Request) error {
 	token, err := VerifyToken(r)
 	if err != nil {

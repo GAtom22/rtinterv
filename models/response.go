@@ -23,31 +23,31 @@ type FileListItem struct {
 	Size interface{} `json:"size"`
 }
 
-type FileMetricsStatusMessage struct{
-	Status string `json:"status"`
+type FileMetricsStatusMessage struct {
+	Status    string `json:"status"`
 	StartTime string `json:"started"`
 }
 
-type FileMetricsFailedMessage struct{
-	Status string `json:"status"`
+type FileMetricsFailedMessage struct {
+	Status  string `json:"status"`
 	Message string `json:"message"`
 }
 
-type FileMetricsSucessMessage struct{
-	Status string `json:"status"`
-	StartTime string `json:"started"`
-	EndTime string `json:"finished"`
-	Metrics []Segment `json:"metrics"`
+type FileMetricsSucessMessage struct {
+	Status    string    `json:"status"`
+	StartTime string    `json:"started"`
+	EndTime   string    `json:"finished"`
+	Metrics   []Segment `json:"metrics"`
 }
 
-type Segment struct{
-	SegmentID int `json:"segmentId"`
-	Uniques []Unique `json:"uniques"`
+type Segment struct {
+	SegmentID int      `json:"segmentId"`
+	Uniques   []Unique `json:"uniques"`
 }
 
-type Unique struct{
+type Unique struct {
 	Country string `json:"country"`
-	Count int `json:"count"`
+	Count   int    `json:"count"`
 }
 
 func (res *APIResponse) SendInfoMessage(w http.ResponseWriter, message string, status int) {
@@ -58,4 +58,3 @@ func (res *APIResponse) SendInfoMessage(w http.ResponseWriter, message string, s
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(*res)
 }
-

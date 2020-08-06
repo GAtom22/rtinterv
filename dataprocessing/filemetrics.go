@@ -1,19 +1,20 @@
 package dataprocessing
 
 import (
-	"time"
 	"bufio"
 	"fmt"
 	"os"
 	"retargetly-exercise/models"
 	"strconv"
 	"strings"
+	"time"
 )
+
 //GetFileMetrics returns the metrics required by "fileName" parameter
-func GetFileMetrics(fileName string) (int64,[]models.Segment,error){
+func GetFileMetrics(fileName string) (int64, []models.Segment, error) {
 	file, err := os.Open(fileName)
 	if err != nil {
-		return 0, []models.Segment{}, fmt.Errorf("Failed to open file %s",fileName)
+		return 0, []models.Segment{}, fmt.Errorf("Failed to open file %s", fileName)
 	}
 
 	// Close when the function returns
@@ -30,8 +31,8 @@ func GetFileMetrics(fileName string) (int64,[]models.Segment,error){
 		if lineNum%100000 == 0 {
 			// take the map that has segment:["Countries array"] and convert to a map for each segment with country as key and user count as value
 			err := countPerCountryPerSeg(&countArr, &finalDataMap)
-			if err != nil{
-				return  0, []models.Segment{}, fmt.Errorf("Error while processing data (cannot convert key to int)")
+			if err != nil {
+				return 0, []models.Segment{}, fmt.Errorf("Error while processing data (cannot convert key to int)")
 			}
 			//Reset the count
 			countArr = map[string][]string{}
@@ -42,17 +43,17 @@ func GetFileMetrics(fileName string) (int64,[]models.Segment,error){
 
 	// Make the count per country according to the segment. Then store this value in a map with the segment as the key
 	err = countPerCountryPerSeg(&countArr, &finalDataMap)
-	if err != nil{
-		return  0, []models.Segment{}, fmt.Errorf("Error while processing data (cannot convert key to int)")
+	if err != nil {
+		return 0, []models.Segment{}, fmt.Errorf("Error while processing data (cannot convert key to int)")
 	}
 
 	//Parse the map with data to the api response structure
 	parseToAPIResponse(&finalDataMap, &apiStruct)
 
-	return  time.Now().Unix(),apiStruct, nil
+	return time.Now().Unix(), apiStruct, nil
 }
 
-func parseToAPIResponse(dataMap *map[int]map[string]int, apiStruct *[]models.Segment){
+func parseToAPIResponse(dataMap *map[int]map[string]int, apiStruct *[]models.Segment) {
 	for segmt, countries := range *dataMap {
 		// create uniques by country
 		uniquesArr := []models.Unique{}
@@ -95,14 +96,14 @@ func countPerSegment(list []string) map[string]int {
 	return countryFrequency
 }
 
-func countPerCountryPerSeg(data *map[string][]string, dataMap *map[int]map[string]int) (error) {
+func countPerCountryPerSeg(data *map[string][]string, dataMap *map[int]map[string]int) error {
 	for k, v := range *data {
 		key, err := strconv.Atoi(k)
 		if err != nil {
 			return err
 		}
 		newCountriesCount := countPerSegment(v)
-		if countries, exist := (*dataMap)[key]; exist{
+		if countries, exist := (*dataMap)[key]; exist {
 			// Add the countries count to the existing object
 			(*dataMap)[key] = updateDataMapObject(countries, newCountriesCount)
 			continue

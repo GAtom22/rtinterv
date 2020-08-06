@@ -1,6 +1,6 @@
 package helpers
 
-import(
+import (
 	"fmt"
 	"time"
 )
@@ -22,7 +22,7 @@ func FileSizeFormating(b int64) string {
 
 //FormatDate formats a date in Unix (int64) to a string with the format YYYY-MM-DDTHH:MM:SS
 func FormatDate(t int64) string {
-	expTime := time.Unix(t,0)
+	expTime := time.Unix(t, 0)
 	expTimeString := expTime.Format(time.RFC3339)
 	// Remove the last 6 characters (-03:00)
 	expTimeString = expTimeString[:len(expTimeString)-6]

@@ -33,6 +33,7 @@ func FilesHandler(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			filesRoutesHandler(w, r, &response)
+
 		default:
 			// Response for other http Methods that are not GET
 			response.SendInfoMessage(w, "Not implemented, try with GET method", http.StatusNotImplemented)
