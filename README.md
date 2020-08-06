@@ -1,4 +1,4 @@
-# Retargetly: Ejercicio Golang Web Server & File Processing.
+# Ejercicio Golang Web Server & File Processing.
 
 ## Endpoints
 
