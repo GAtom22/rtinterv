@@ -1,7 +1,7 @@
 package dataprocessing
 
 import (
-	// "runtime"
+	"time"
 	"bufio"
 	"fmt"
 	"log"
@@ -12,14 +12,10 @@ import (
 	"sync"
 )
 
-var wg = sync.WaitGroup{}
-var m = sync.RWMutex{}
-
-func StartProcesss(fileName string) {
-	// runtime.GOMAXPROCS(1)
+func StartProcesss(fileName string) (int64,[]models.Segment,error){
 	file, err := os.Open(fileName)
 	if err != nil {
-		log.Fatal(err)
+		return 0, []models.Segment{}, err
 	}
 
 	// Close when the functin returns
@@ -32,7 +28,6 @@ func StartProcesss(fileName string) {
 
 	// get a map with the segments as key and the countries as array of strings
 	var lineNum int
-
 	for scanner.Scan() {
 		if lineNum%100000 == 0 {
 			countPerCountryPerSeg(&countArr, &finalDataMap)
@@ -46,8 +41,14 @@ func StartProcesss(fileName string) {
 	// Make the count per country according to the segment. Then store this value in a map with the segment as the key
 	countPerCountryPerSeg(&countArr, &finalDataMap)
 
-	//Generate last data structure
-	for segmt, countries := range finalDataMap {
+	//Parse the map with data to the api response structure
+	parseToAPIResponse(&finalDataMap, &apiStruct)
+
+	return  time.Now().Unix(),apiStruct, nil
+}
+
+func parseToAPIResponse(dataMap *map[int]map[string]int, apiStruct *[]models.Segment){
+	for segmt, countries := range *dataMap {
 		// create uniques by country
 		uniquesArr := []models.Unique{}
 		for countryID, count := range countries {
@@ -57,17 +58,12 @@ func StartProcesss(fileName string) {
 			}
 			uniquesArr = append(uniquesArr, newUnique)
 		}
-
 		newSegment := models.Segment{
 			SegmentID: segmt,
 			Uniques:   uniquesArr,
 		}
-
-		apiStruct = append(apiStruct, newSegment)
+		(*apiStruct) = append((*apiStruct), newSegment)
 	}
-
-	fmt.Printf("ready")
-	//fmt.Printf("%v", apiStruct)
 }
 
 func preProcessLinesBySeg(line string, countryArr *map[string][]string) {

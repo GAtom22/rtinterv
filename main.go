@@ -20,6 +20,6 @@ func main(){
 	fmt.Printf("Starting server on port: %d\n", *port)
 	//log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
 	
-	dataprocessing.StartProcesss("./data/file2.tsv")
+	dataprocessing.StartProcesss("./data/file1.tsv")
 	// dataprocessing.ProcessFile("./data/test1.tsv")
 }
