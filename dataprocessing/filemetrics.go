@@ -4,18 +4,16 @@ import (
 	"time"
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"retargetly-exercise/models"
 	"strconv"
 	"strings"
-	"sync"
 )
-
-func StartProcesss(fileName string) (int64,[]models.Segment,error){
+//GetFileMetrics returns the metrics required by "fileName" parameter
+func GetFileMetrics(fileName string) (int64,[]models.Segment,error){
 	file, err := os.Open(fileName)
 	if err != nil {
-		return 0, []models.Segment{}, err
+		return 0, []models.Segment{}, fmt.Errorf("Failed to open file %s",fileName)
 	}
 
 	// Close when the functin returns
@@ -26,12 +24,16 @@ func StartProcesss(fileName string) (int64,[]models.Segment,error){
 	finalDataMap := map[int]map[string]int{}
 	apiStruct := []models.Segment{}
 
-	// get a map with the segments as key and the countries as array of strings
+	// get a map with the segments as key and the countries as array of strings in a 100000-line batch
 	var lineNum int
 	for scanner.Scan() {
 		if lineNum%100000 == 0 {
-			countPerCountryPerSeg(&countArr, &finalDataMap)
-			//fmt.Printf("%v\n", finalDataMap)
+			// take the map that has segment:["Countries array"] and convert to a map for each segment with country as key and user count as value
+			err := countPerCountryPerSeg(&countArr, &finalDataMap)
+			if err != nil{
+				return  0, []models.Segment{}, fmt.Errorf("Error while processing data (cannot convert key to int)")
+			}
+			//Reset the count
 			countArr = map[string][]string{}
 		}
 		preProcessLinesBySeg(scanner.Text(), &countArr)
@@ -39,7 +41,10 @@ func StartProcesss(fileName string) (int64,[]models.Segment,error){
 	}
 
 	// Make the count per country according to the segment. Then store this value in a map with the segment as the key
-	countPerCountryPerSeg(&countArr, &finalDataMap)
+	err = countPerCountryPerSeg(&countArr, &finalDataMap)
+	if err != nil{
+		return  0, []models.Segment{}, fmt.Errorf("Error while processing data (cannot convert key to int)")
+	}
 
 	//Parse the map with data to the api response structure
 	parseToAPIResponse(&finalDataMap, &apiStruct)
@@ -66,6 +71,7 @@ func parseToAPIResponse(dataMap *map[int]map[string]int, apiStruct *[]models.Seg
 	}
 }
 
+//preProcessLinesBySeg creates a map with the segment as keys and an array of country codes as values
 func preProcessLinesBySeg(line string, countryArr *map[string][]string) {
 	record := strings.Split(line, "\t")
 	segments := strings.Split(record[1], ",")
@@ -74,6 +80,7 @@ func preProcessLinesBySeg(line string, countryArr *map[string][]string) {
 	}
 }
 
+//countPerSegment input is an array of countries and creates a map with the count per country
 func countPerSegment(list []string) map[string]int {
 	countryFrequency := make(map[string]int)
 	for _, country := range list {
@@ -88,12 +95,11 @@ func countPerSegment(list []string) map[string]int {
 	return countryFrequency
 }
 
-func countPerCountryPerSeg(data *map[string][]string, dataMap *map[int]map[string]int) {
+func countPerCountryPerSeg(data *map[string][]string, dataMap *map[int]map[string]int) (error) {
 	for k, v := range *data {
 		key, err := strconv.Atoi(k)
 		if err != nil {
-			fmt.Println("Error")
-			return
+			return err
 		}
 		newCountriesCount := countPerSegment(v)
 		if countries, exist := (*dataMap)[key]; exist{
@@ -103,6 +109,7 @@ func countPerCountryPerSeg(data *map[string][]string, dataMap *map[int]map[strin
 		}
 		(*dataMap)[key] = newCountriesCount
 	}
+	return nil
 }
 
 func updateDataMapObject(currentCountMap map[string]int, newCountMap map[string]int) map[string]int {

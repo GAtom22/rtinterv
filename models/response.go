@@ -28,6 +28,11 @@ type FileMetricsStatusMessage struct{
 	StartTime string `json:"started"`
 }
 
+type FileMetricsFailedMessage struct{
+	Status string `json:"status"`
+	Message string `json:"message"`
+}
+
 type FileMetricsSucessMessage struct{
 	Status string `json:"status"`
 	StartTime string `json:"started"`
