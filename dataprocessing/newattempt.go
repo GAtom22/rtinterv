@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"retargetly-exercise/models"
+	"strconv"
 	"strings"
 )
-
-type Countries struct{
-	Name string
-	Count int
-}
 
 func StartProcess(fileName string) {
 	file, err := os.Open(fileName)
@@ -23,56 +20,66 @@ func StartProcess(fileName string) {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	userArr := map[string][]Countries{}
+	countArr := map[string][]string{}
+	finalDataMap := map[int]map[string]int{}
+	apiStruct := []models.Segment{}
 
+	// get a map with the segments as key and the countries as array of strings
 	for scanner.Scan() {
-		// fmt.Printf("%v", scanner.Text())
-		userArr = preProcessLines(scanner.Text(), userArr)
+		preProcessLinesBySeg(scanner.Text(), &countArr)
 	}
-	fmt.Printf("%v",userArr)
+
+	// Make the count per country according to the segment. Then store this value in a map with the segment as the key 
+	for k, v := range countArr {
+		key, err := strconv.Atoi(k)
+		if err != nil {
+			fmt.Println("Error")
+			return
+		}
+		finalDataMap[key] = countPerSegment(v)
+	}
+	
+	//Generate last data structure
+	for segmt, countries := range finalDataMap {
+		// create uniques by country
+		uniquesArr := []models.Unique{}
+		for countryID, count := range countries {
+			newUnique := models.Unique{
+				Country: countryID,
+				Count:   count,
+			}
+			uniquesArr = append(uniquesArr, newUnique)
+		}
+
+		newSegment := models.Segment{
+			SegmentID: segmt,
+			Uniques:   uniquesArr,
+		}
+
+		apiStruct = append(apiStruct, newSegment)
+	}
+	fmt.Printf("ready")
+//	fmt.Printf("%v", apiStruct)
 }
 
-// func preProcessLines(line string, userArr []string) []string{
-
-// 	record := strings.Split(line, "\t")
-// 	segments := strings.Split(record[1],",")
-// 	for _,v := range segments{
-// 		userArr = append(userArr, v+record[2])
-// 	}	
-// 	return userArr
-// }
-
-// func preProcessLines(line string, userArr map[string]int) map[string]int{
-// 	record := strings.Split(line, "\t")
-// 	segments := strings.Split(record[1],",")
-// 	for _,v := range segments{
-// 		key := v+record[2]
-// 		if _, ok:=userArr[key]; ok{
-// 			userArr[key]++
-// 			continue
-// 		}
-// 		userArr[key] = 1
-// 	}	
-// 	return userArr
-// }
-
-func preProcessLines(line string, userArr map[string][]Countries) map[string][]Countries{
+func preProcessLinesBySeg(line string, countryArr *map[string][]string) {
 	record := strings.Split(line, "\t")
-	segments := strings.Split(record[1],",")
-	for _,s := range segments{
-		if _, ok:=userArr[s]; ok{
-			for _, v := range userArr[s]{
-				if v.Name == record[2]{
-					v.Count++
-					continue
-				}
-			}
+	segments := strings.Split(record[1], ",")
+	for _, s := range segments {
+		(*countryArr)[s] = append((*countryArr)[s], record[2])
+	}
+}
+
+func countPerSegment(list []string) map[string]int {
+	countryFrequency := make(map[string]int)
+	for _, country := range list {
+		// check if the item/element exist in the duplicate_frequency map
+		_, exist := countryFrequency[country]
+		if exist {
+			countryFrequency[country]++ // increase counter by 1 if already in the map
+		} else {
+			countryFrequency[country] = 1 // else start counting from 1
 		}
-		newCountry := Countries{
-			Name: record[2],
-			Count: 1,
-		}
-		userArr[s] = append(userArr[s], newCountry)
-	}	
-	return userArr
+	}
+	return countryFrequency
 }
