@@ -1,5 +1,9 @@
 # Ejercicio Golang Web Server & File Processing.
 
+## Data
+
+Por default, la aplicacion busca los archivos en un directorio llamado "/data".
+
 ## Endpoints
 
 **POST /login**
