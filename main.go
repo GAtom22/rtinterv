@@ -7,7 +7,9 @@ import(
 	"flag"
 	"retargetly-exercise/handlers"
 	"retargetly-exercise/dataprocessing"
+	"sync"
 )
+var wg = sync.WaitGroup{}
 
 func main(){
 	port := flag.Int("port", 3000, "the port to start the CYOA web application on")
@@ -17,7 +19,7 @@ func main(){
 
 	fmt.Printf("Starting server on port: %d\n", *port)
 	//log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
-
-	dataprocessing.StartProcess("./data/file1.tsv")
+	
+	dataprocessing.StartProcesss("./data/file2.tsv")
 	// dataprocessing.ProcessFile("./data/test1.tsv")
 }
