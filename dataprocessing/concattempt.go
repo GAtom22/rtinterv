@@ -29,16 +29,14 @@ func StartProcesss(fileName string) {
 	countArr := map[string][]string{}
 	finalDataMap := map[int]map[string]int{}
 	apiStruct := []models.Segment{}
-	workQueue := make(chan map[string][]string, 5)
-	secondStep := make(chan map[int]map[string]int)
-	defer close(workQueue)
-	defer close(secondStep)
+
 	// get a map with the segments as key and the countries as array of strings
 	var lineNum int
 
 	for scanner.Scan() {
-		if lineNum%1000000 == 0 {
+		if lineNum%100000 == 0 {
 			countPerCountryPerSeg(&countArr, &finalDataMap)
+			//fmt.Printf("%v\n", finalDataMap)
 			countArr = map[string][]string{}
 		}
 		preProcessLinesBySeg(scanner.Text(), &countArr)
@@ -69,7 +67,7 @@ func StartProcesss(fileName string) {
 	}
 
 	fmt.Printf("ready")
-	fmt.Printf("%v", apiStruct)
+	//fmt.Printf("%v", apiStruct)
 }
 
 func preProcessLinesBySeg(line string, countryArr *map[string][]string) {
@@ -101,6 +99,25 @@ func countPerCountryPerSeg(data *map[string][]string, dataMap *map[int]map[strin
 			fmt.Println("Error")
 			return
 		}
-		(*dataMap)[key] = countPerSegment(v)
+		newCountriesCount := countPerSegment(v)
+		if countries, exist := (*dataMap)[key]; exist{
+			// Add the countries count to the existing object
+			(*dataMap)[key] = updateDataMapObject(countries, newCountriesCount)
+			continue
+		}
+		(*dataMap)[key] = newCountriesCount
 	}
+}
+
+func updateDataMapObject(currentCountMap map[string]int, newCountMap map[string]int) map[string]int {
+	for country, count := range newCountMap {
+		// check if the item/element exist in the duplicate_frequency map
+		_, exist := currentCountMap[country]
+		if exist {
+			currentCountMap[country] += count // increase counter if already in the map
+		} else {
+			currentCountMap[country] = count // else start counting
+		}
+	}
+	return currentCountMap
 }
