@@ -7,7 +7,6 @@ import (
 	"retargetly-exercise/helpers"
 	"retargetly-exercise/models"
 	"time"
-
 	"github.com/dgrijalva/jwt-go"
 )
 
@@ -15,6 +14,7 @@ import (
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	switch r.Method {
+		
 	case http.MethodPost:
 		response := models.APIResponse{}
 		//Check user credentials

@@ -16,7 +16,7 @@ func GetFileMetrics(fileName string) (int64,[]models.Segment,error){
 		return 0, []models.Segment{}, fmt.Errorf("Failed to open file %s",fileName)
 	}
 
-	// Close when the functin returns
+	// Close when the function returns
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)

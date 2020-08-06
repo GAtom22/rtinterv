@@ -59,4 +59,3 @@ func (res *APIResponse) SendInfoMessage(w http.ResponseWriter, message string, s
 	json.NewEncoder(w).Encode(*res)
 }
 
-//#endregion
