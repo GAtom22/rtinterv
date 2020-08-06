@@ -2,7 +2,7 @@
 
 ## Data
 
-Por default, la aplicacion busca los archivos en un directorio llamado "/data".
+Por default, la aplicacion busca los archivos en un directorio llamado "/data" ubicado en el directorio raiz de la app.
 
 ## Endpoints
 
