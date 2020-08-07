@@ -4,26 +4,28 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"retargetly-exercise/models"
+	m "retargetly-exercise/models"
 	"strconv"
 	"strings"
 	"time"
 )
 
 //GetFileMetrics returns the metrics required by "fileName" parameter
-func GetFileMetrics(fileName string) (int64, []models.Segment, error) {
+func GetFileMetrics(fileName string) (int64, []m.Segment, error) {
+	countArr := map[string][]string{}
+	finalDataMap := map[int]map[string]int{}
+	apiStruct := []m.Segment{}
+	
 	file, err := os.Open(fileName)
 	if err != nil {
-		return 0, []models.Segment{}, fmt.Errorf("Failed to open file %s", fileName)
+		return 0, apiStruct, fmt.Errorf("Failed to open file %s", fileName)
 	}
+	scanner := bufio.NewScanner(file)
 
 	// Close when the function returns
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-	countArr := map[string][]string{}
-	finalDataMap := map[int]map[string]int{}
-	apiStruct := []models.Segment{}
+
 
 	// get a map with the segments as key and the countries as array of strings in a 100000-line batch
 	var lineNum int
@@ -32,7 +34,7 @@ func GetFileMetrics(fileName string) (int64, []models.Segment, error) {
 			// take the map that has segment:["Countries array"] and convert to a map for each segment with country as key and user count as value
 			err := countPerCountryPerSeg(&countArr, &finalDataMap)
 			if err != nil {
-				return 0, []models.Segment{}, fmt.Errorf("Error while processing data (cannot convert key to int)")
+				return 0, apiStruct, fmt.Errorf("Error while processing data (cannot convert key to int)")
 			}
 			//Reset the count
 			countArr = map[string][]string{}
@@ -44,7 +46,7 @@ func GetFileMetrics(fileName string) (int64, []models.Segment, error) {
 	// Make the count per country according to the segment. Then store this value in a map with the segment as the key
 	err = countPerCountryPerSeg(&countArr, &finalDataMap)
 	if err != nil {
-		return 0, []models.Segment{}, fmt.Errorf("Error while processing data (cannot convert key to int)")
+		return 0, apiStruct, fmt.Errorf("Error while processing data (cannot convert key to int)")
 	}
 
 	//Parse the map with data to the api response structure
@@ -53,18 +55,18 @@ func GetFileMetrics(fileName string) (int64, []models.Segment, error) {
 	return time.Now().Unix(), apiStruct, nil
 }
 
-func parseToAPIResponse(dataMap *map[int]map[string]int, apiStruct *[]models.Segment) {
+func parseToAPIResponse(dataMap *map[int]map[string]int, apiStruct *[]m.Segment) {
 	for segmt, countries := range *dataMap {
 		// create uniques by country
-		uniquesArr := []models.Unique{}
+		uniquesArr := []m.Unique{}
 		for countryID, count := range countries {
-			newUnique := models.Unique{
+			newUnique := m.Unique{
 				Country: countryID,
 				Count:   count,
 			}
 			uniquesArr = append(uniquesArr, newUnique)
 		}
-		newSegment := models.Segment{
+		newSegment := m.Segment{
 			SegmentID: segmt,
 			Uniques:   uniquesArr,
 		}
