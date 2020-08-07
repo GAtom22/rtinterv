@@ -90,6 +90,7 @@ func filesRoutesHandler(w http.ResponseWriter, r *http.Request, response *m.APIR
 				return
 			}
 			metricsCh <- &fileMetricsResponse
+			close(metricsCh)
 		}()
 
 		// Return a successfull response with the data
