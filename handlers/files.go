@@ -11,10 +11,7 @@ import (
 	"retargetly-exercise/middleware"
 	m "retargetly-exercise/models"
 	"strings"
-	"sync"
 )
-
-var wg = sync.WaitGroup{}
 
 //FilesHandler handles the request for files/list and files/metrics
 func FilesHandler(w http.ResponseWriter, r *http.Request) {
