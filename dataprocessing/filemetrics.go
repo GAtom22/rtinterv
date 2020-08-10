@@ -38,7 +38,7 @@ func GetFileMetrics(fileName string) (int64, []m.Segment, error) {
 				return 0, apiStruct, fmt.Errorf("Error while processing data (cannot convert key to int)")
 			}
 			//Reset the count
-			countArr = map[string][]string{}
+			countArr = make(map[string][]string, segmentNum)
 		}
 		preProcessLinesBySeg(scanner.Text(), &countArr)
 		lineNum++
