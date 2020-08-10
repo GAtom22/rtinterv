@@ -12,9 +12,10 @@ import (
 
 //GetFileMetrics returns the metrics required by "fileName" parameter
 func GetFileMetrics(fileName string) (int64, []m.Segment, error) {
-	countArr := map[string][]string{}
-	finalDataMap := map[int]map[string]int{}
-	apiStruct := []m.Segment{}
+	catNum := 238		//Number of categories
+	countArr := make(map[string][]string, catNum)
+	finalDataMap := make(map[int]map[string]int, catNum)
+	apiStruct := make([]m.Segment, 0, catNum)
 	
 	file, err := os.Open(fileName)
 	if err != nil {
