@@ -5,13 +5,11 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"reflect"
+	h "retargetly-exercise/helpers"
 	m "retargetly-exercise/models"
 	"strconv"
 	"strings"
 	"time"
-	"unsafe"
-	h "retargetly-exercise/helpers"
 )
 
 var countries = [...]string{"AR", "BR", "CL", "CO", "MX", "PE"}
@@ -22,7 +20,6 @@ func GetFileMetrics(fileName string) (int64, []m.Segment, error) {
 	countArr := make(map[string][]byte, catNum)
 	finalDataMap := make(map[int]map[string]int, catNum)
 	apiStruct := make([]m.Segment, 0, catNum)
-	buf := &bytes.Buffer{}
 
 	file, err := os.Open(fileName)
 	if err != nil {
@@ -44,7 +41,7 @@ func GetFileMetrics(fileName string) (int64, []m.Segment, error) {
 			//Reset the count
 			countArr = make(map[string][]byte, catNum)
 		}
-		preProcessLinesBySeg(scanner.Text(), &countArr, buf)
+		preProcessLinesBySeg(scanner.Text(), &countArr)
 		lineNum++
 	}
 	// Make the count per country according to the segment. Then store this value in a map with the segment as the key
@@ -78,7 +75,8 @@ func parseToAPIResponse(dataMap *map[int]map[string]int, apiStruct *[]m.Segment)
 }
 
 //preProcessLinesBySeg creates a map with the segment as keys and a string of country codes concatenated as []byte
-func preProcessLinesBySeg(line string, countryArr *map[string][]byte, buf *bytes.Buffer) {
+func preProcessLinesBySeg(line string, countryArr *map[string][]byte){
+	buf := &bytes.Buffer{}
 	record := strings.Split(line, "\t")
 	segments := strings.Split(record[1], ",")
 	buf.WriteString(record[2])
@@ -115,7 +113,7 @@ func countPerSegment(list string) map[string]int {
 		if count == 0 {
 			continue
 		}
-		countryFrequency[country] = count 
+		countryFrequency[country] = count
 	}
 	return countryFrequency
 }
@@ -132,4 +130,3 @@ func updateDataMapObject(currentCountMap map[string]int, newCountMap map[string]
 	}
 	return currentCountMap
 }
-
