@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"unsafe"
+	"reflect"
 	"fmt"
 	"time"
 )
@@ -28,4 +30,11 @@ func FormatDate(t int64) string {
 	expTimeString = expTimeString[:len(expTimeString)-6]
 
 	return expTimeString
+}
+
+//BytesToString converts a slice of bytes to the corresponding string
+func BytesToString(b []byte) string {
+	bh := (*reflect.SliceHeader)(unsafe.Pointer(&b))
+	sh := reflect.StringHeader{bh.Data, bh.Len}
+	return *(*string)(unsafe.Pointer(&sh))
 }
